@@ -1,0 +1,84 @@
+.board {
+    display: grid;
+    grid-template-columns: 80px repeat(4, 1fr);
+    gap: 4px;
+}
+
+.slot-header,
+.dock-label {
+    background: #e9ecef;
+    font-weight: bold;
+    padding: 6px;
+    text-align: center;
+}
+
+.cell {
+    min-height: 48px;
+    border: 1px solid #ccc;
+    background: #fff;
+}
+
+.tile {
+    background: #d0e8ff;
+    border-radius: 4px;
+    padding: 4px 6px;
+    font-size: 0.8rem;
+    height: 100%;
+}
+
+.tile .badge {
+    display: inline-block;
+    color: #fff;
+    font-size: 0.7rem;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-right: 4px;
+}
+
+.tile.type-live .badge {
+    background: #1c6dd0;
+}
+
+.tile.type-destuff .badge {
+    background: #7b3fb3;
+}
+
+.tile.status-expected {
+    background: #f3f3f3;
+}
+
+.tile.status-confirmed {
+    background: #e3e8ff;
+}
+
+.tile.status-arrived {
+    background: #fff0c2;
+}
+
+.tile.status-ready {
+    background: #d4f5d4;
+}
+
+.tile.status-collected {
+    background: #e2e2e2;
+}
+
+
+.tile .advance {
+    margin-top: 4px;
+    font-size: 0.7rem;
+    padding: 1px 6px;
+    cursor: pointer;
+}
+
+.add-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.message {
+    color: #b00020;
+    min-height: 1.2em;
+}

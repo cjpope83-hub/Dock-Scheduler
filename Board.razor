@@ -1,0 +1,170 @@
+@page "/board"
+@rendermode InteractiveServer
+
+<h3>Dock Board</h3>
+<p>On board: @bookings.Count(b => b.Status != "Expected") · Upcoming: @bookings.Count(b => b.Status == "Expected")</p>
+
+<div class="add-form">
+    <input @bind="newClient" placeholder="Client name" />
+    <input @bind="newContainer" placeholder="Container number" />
+
+    <select @bind="newType">
+        <option value="Live">Live</option>
+        <option value="Destuff">Destuff</option>
+    </select>
+
+    <select @bind="newDock">
+        @foreach (var d in docks)
+        {
+            <option value="@d">Dock @d</option>
+        }
+    </select>
+
+    <select @bind="newSlot">
+        @foreach (var s in slots)
+        {
+            <option value="@s">@s</option>
+        }
+    </select>
+
+    <button @onclick="AddBooking">Add booking</button>
+</div>
+
+<p class="message">@message</p>
+
+<div class="board">
+    <!-- Header row -->
+    <div class="corner"></div>
+    @foreach (var slot in slots)
+    {
+        <div class="slot-header">@slot</div>
+    }
+
+    <!-- One row per dock -->
+    @foreach (var dock in docks)
+    {
+        <div class="dock-label">Dock @dock</div>
+
+        @foreach (var slot in slots)
+        {
+            var booking = bookings.FirstOrDefault(b => b.Dock == dock && b.Slot == slot && b.Status != "Expected");
+
+            <div class="cell">
+                @if (booking != null)
+                {
+                    <div class="tile @StatusClass(booking.Status) @TypeClass(booking.OccupancyType)">
+                        <span class="badge">@booking.OccupancyType.ToUpper()</span>
+                        <strong>@booking.ClientName</strong><br />
+                        @booking.ContainerNumber<br />
+                        @booking.Status
+                        @if (booking.Status != "Collected")
+                        {
+                            <br />
+                            @if (booking.Status != "Expected")
+                            {
+                                <button class="advance" @onclick="() => RetreatStatus(booking)">◂ Back</button>
+                            }
+                            <button class="advance" @onclick="() => AdvanceStatus(booking)">Next ▸</button>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private List<int> docks = new() { 5, 6, 7, 8, 9, 10, 11, 12 };
+    private List<string> slots = new() { "7-9", "9-11", "11-1", "1-3" };
+
+    private List<string> statuses = new()
+{
+    "Expected",
+    "Confirmed",
+    "Arrived/Inprogress",
+    "Ready For Collection/Email Sent",
+    "Collected"
+};
+
+    private List<Booking> bookings = new()
+    {
+    new Booking { ClientName = "Acme Foods", ContainerNumber = "MSKU1234567", OccupancyType = "Live", Status = "Confirmed",
+Dock = 5, Slot = "7-9" },
+new Booking { ClientName = "Bright Toys", ContainerNumber = "TGHU7654321", OccupancyType = "Destuff", Status =
+"Arrived/Inprogress", Dock = 9, Slot = "9-11" },
+new Booking { ClientName = "Cole Steel", ContainerNumber = "CMAU1112223", OccupancyType = "Live", Status = "Confirmed",
+Dock = 7, Slot = "1-3" },
+new Booking { ClientName = "Dale Drinks", ContainerNumber = "OOLU9998887", OccupancyType = "Live", Status = "Expected" }
+    };
+
+
+
+    private string newClient = "";
+    private string newContainer = "";
+    private string newType = "Live";
+    private int newDock = 5;
+    private string newSlot = "7-9";
+    private string message = "";
+
+    void AddBooking()
+    {
+        if (string.IsNullOrWhiteSpace(newClient) || string.IsNullOrWhiteSpace(newContainer))
+        {
+            message = "Please enter a client name and container number.";
+            return;
+        }
+
+        if (bookings.Any(b => b.Dock == newDock && b.Slot == newSlot && b.Status != "Expected"))
+        {
+            message = $"Dock {newDock} at {newSlot} is already booked.";
+            return;
+        }
+
+        bookings.Add(new Booking
+        {
+            ClientName = newClient,
+            ContainerNumber = newContainer.ToUpper(),
+            OccupancyType = newType,
+            Dock = newDock,
+            Slot = newSlot,
+            Status = "Confirmed",
+        });
+
+        newClient = "";
+        newContainer = "";
+        message = "";
+    }
+
+    void AdvanceStatus(Booking booking)
+    {
+        var index = statuses.IndexOf(booking.Status);
+
+        if (index >= 0 && index < statuses.Count - 1)
+        {
+            booking.Status = statuses[index + 1];
+        }
+    }
+
+    void RetreatStatus(Booking booking)
+    {
+        var index = statuses.IndexOf(booking.Status);
+
+        if (index > 0)
+        {
+            booking.Status = statuses[index - 1];
+        }
+    }
+
+    string StatusClass(string status) => status switch
+    {
+        "Expected" => "status-expected",
+        "Confirmed" => "status-confirmed",
+        "Arrived/Inprogress" => "status-arrived",
+        "Ready For Collection/Email Sent" => "status-ready",
+        "Collected" => "status-collected",
+        _ => ""
+    };
+
+    string TypeClass(string type) => type == "Destuff" ? "type-destuff" : "type-live";
+}
+
